@@ -15,9 +15,16 @@ from groq import Groq
 from dotenv import load_dotenv
 import base64
 
+
 load_dotenv()
 groq_client = Groq(api_key=os.getenv("GROQ_API_KEY"))
 app = FastAPI(title="GradeOps API")
+
+from sentence_transformers import SentenceTransformer
+from sklearn.metrics.pairwise import cosine_similarity
+import numpy as np
+
+plagiarism_model = SentenceTransformer("all-MiniLM-L6-v2")
 
 # ─── CORS ────────────────────────────────────────────────────────────────────
 app.add_middleware(
@@ -182,6 +189,33 @@ Respond ONLY in this exact JSON format, nothing else:
         "percentage": round((total / max_total) * 100, 1) if max_total > 0 else 0,
         "transcribed_text": transcribed_text
     }
+#PLAGIARISM CHECKER (optional, can be enhanced later)
+def check_plagiarism(grade_entries: list, threshold=0.60):
+    if len(grade_entries) < 2:
+        return
+
+    texts = []
+    for g in grade_entries:
+        transcribed = g["ai_result"].get("transcribed_text", "")
+        if not transcribed:
+            transcribed = " ".join([q["justification"] for q in g["ai_result"].get("grades", [])])
+        texts.append(transcribed)
+
+    ids = [g["student_id"] for g in grade_entries]
+
+    embeddings = plagiarism_model.encode(texts)
+    similarity_matrix = cosine_similarity(embeddings)
+
+    for i in range(len(ids)):
+        for j in range(i + 1, len(ids)):
+            similarity = float(similarity_matrix[i][j])
+            if similarity >= threshold:
+                grade_entries[i]["plagiarism_flagged"] = True
+                grade_entries[i]["plagiarism_similarity"] = round(similarity, 2)
+                grade_entries[i]["plagiarism_with"] = ids[j]
+                grade_entries[j]["plagiarism_flagged"] = True
+                grade_entries[j]["plagiarism_similarity"] = round(similarity, 2)
+                grade_entries[j]["plagiarism_with"] = ids[i]
 # ─── AUTH ROUTES ──────────────────────────────────────────────────────────────
 @app.post("/auth/login", response_model=Token)
 async def login(form_data: OAuth2PasswordRequestForm = Depends()):
@@ -232,7 +266,7 @@ async def upload_exam(
             "file_path": file_path,
             "filename": file.filename,
             "ai_result": ai_result,
-            "status": "pending",   # pending | approved | overridden
+            "status": "pending",
             "reviewed_by": None,
             "reviewed_at": None,
             "final_score": ai_result["total_score"],
@@ -241,6 +275,10 @@ async def upload_exam(
         }
         GRADES_DB[grade_id] = grade_entry
         submissions.append({"student_id": student_id, "grade_id": grade_id})
+
+    # Run plagiarism check across all submissions
+    all_grade_entries = [GRADES_DB[s["grade_id"]] for s in submissions]
+    check_plagiarism(all_grade_entries, threshold=0.60)
 
     EXAMS_DB[exam_id] = {
         "exam_id": exam_id,
@@ -322,10 +360,9 @@ async def get_exam_stats(exam_id: str, user=Depends(get_current_user)):
         "max_score": max(scores),
         "min_score": min(scores),
         "plagiarism_flags": sum(
-            1 for g in grades
-            for q in g["ai_result"]["grades"]
-            if q.get("plagiarism_flag")
-        )
+    1 for g in grades
+    if g.get("plagiarism_flagged")
+)
     }
 
 # ─── HEALTH CHECK ─────────────────────────────────────────────────────────────
