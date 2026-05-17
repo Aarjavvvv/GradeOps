@@ -1,162 +1,265 @@
-# GradeOps — Setup Guide
+# <img src="https://raw.githubusercontent.com/Tarikul-Islam-Anik/Animated-Fluent-Emojis/master/Emojis/Objects/Memo.png" width="35px"> GradeOps
 
-## Project Structure
+> **"Transforming the chaos of handwritten exam grading into a fast, fair, and intelligent pipeline."**
+
+[![Python](https://img.shields.io/badge/Python-3.10+-3776AB?style=for-the-badge&logo=python&logoColor=white)](https://python.org)
+[![React](https://img.shields.io/badge/React-18-61DAFB?style=for-the-badge&logo=react&logoColor=black)](https://react.dev)
+[![FastAPI](https://img.shields.io/badge/FastAPI-0.111-009688?style=for-the-badge&logo=fastapi&logoColor=white)](https://fastapi.tiangolo.com)
+[![Vite](https://img.shields.io/badge/Vite-5.0-646CFF?style=for-the-badge&logo=vite&logoColor=white)](https://vitejs.dev)
+[![Groq](https://img.shields.io/badge/Groq-LLaMA_4-F55036?style=for-the-badge&logo=groq&logoColor=white)](https://groq.com)
+[![LangChain](https://img.shields.io/badge/LangChain-Agentic-1C3C3C?style=for-the-badge&logo=chainlink&logoColor=white)](https://langchain.com)
+[![License](https://img.shields.io/badge/License-MIT-yellow?style=for-the-badge)](LICENSE)
+[![Status](https://img.shields.io/badge/Status-Active-brightgreen?style=for-the-badge)]()
+
+---
+
+[🚀 Features](#-key-features) • [🧬 How it Works](#-how-it-works) • [🛠 Setup](#-installation--setup) • [📁 Project Structure](#-project-structure) • [🖼 Screenshots](#-screenshots) • [👥 Team](#-team)
+
+---
+
+## 🧭 The Problem
+
+Grading handwritten exams is **time-consuming**, **inconsistent**, and prone to **fatigue-induced bias**. A single professor may grade hundreds of papers in one sitting — leading to unfair, rushed evaluations.
+
+**GradeOps** solves this by introducing a Human-in-the-Loop (HITL) AI grading pipeline that:
+- Reads handwritten answers using Vision-Language Models (VLMs)
+- Grades them against strict rubrics using Agentic LLMs
+- Pushes results to a high-speed dashboard for Teaching Assistants (TAs) to review, approve, or override
+
+---
+
+## 🚀 Key Features
+
+### 👁️ Vision-Based OCR
+Upload scanned exam PDFs and let LLaMA 4 Scout Vision extract even the messiest handwritten answers — no preprocessing required.
+
+### 🤖 Agentic LLM Grading
+Each answer is graded against a professor-defined rubric. The AI awards partial credit and generates a structured textual justification for every mark given.
+
+### 🔍 Plagiarism Detection
+Using SentenceTransformer embeddings and cosine similarity, GradeOps flags student pairs whose answers are suspiciously similar — automatically.
+
+### ⚡ High-Speed TA Dashboard
+TAs review the original scanned answer side-by-side with the AI grade. Approve or override decisions in seconds — massive time savings, full human control.
+
+### 🔐 Role-Based Access Control
+Separate logins for **Instructors** (upload exams, define rubrics) and **TAs** (review and approve grades).
+
+---
+
+## 🧬 How it Works
+
+```
+📄 PDF Upload
+     │
+     ▼
+🔍 LLaMA 4 Scout Vision (OCR)
+     │  Extracts handwritten text from scanned pages
+     ▼
+🤖 LLaMA 3.3 70B (Grader Agent)
+     │  Scores each question against the rubric
+     │  Generates justification for awarded marks
+     ▼
+📊 FastAPI Backend
+     │  Stores grades, manages users and exams
+     ▼
+⚡ React Dashboard
+     │  TAs review AI grades side-by-side with scans
+     ▼
+✅ Approved / Overridden Grade
+     │
+     ▼
+🔍 SentenceTransformers (Plagiarism Check)
+     Flags suspicious answer pairs by semantic similarity
+```
+
+---
+
+## 🏗 Architecture
+
+| Layer | Technology | Role |
+|---|---|---|
+| **Frontend** | React + Vite | TA/Instructor dashboard UI |
+| **Backend** | FastAPI (Python) | API endpoints, auth, file handling |
+| **OCR** | LLaMA 4 Scout Vision (Groq) | Handwriting extraction from PDFs |
+| **Grader** | LLaMA 3.3 70B (Groq) | Rubric-based answer scoring |
+| **Plagiarism** | SentenceTransformers (`all-MiniLM-L6-v2`) | Semantic similarity detection |
+| **Auth** | JWT + bcrypt | Secure role-based access control |
+| **Storage** | Local filesystem + in-memory DB | Exam files and grade records |
+
+---
+
+## 📁 Project Structure
+
 ```
 gradeops/
 ├── backend/
-│   ├── main.py          ← FastAPI server (all routes)
-│   └── requirements.txt
-└── frontend/
-    ├── src/
-    │   ├── App.jsx              ← Root app + routing + auth context
-    │   ├── main.jsx             ← React entry point
-    │   ├── index.css            ← Global styles
-    │   └── pages/
-    │       ├── LoginPage.jsx    ← Login with role selection
-    │       ├── DashboardPage.jsx← All exams overview
-    │       ├── UploadPage.jsx   ← Professor upload portal
-    │       ├── ExamDetailPage.jsx← All submissions for one exam
-    │       └── ReviewPage.jsx   ← TA review dashboard (keyboard shortcuts)
-    ├── index.html
-    ├── package.json
-    └── vite.config.js
+│   ├── main.py              # FastAPI app — all routes and AI pipeline
+│   ├── requirements.txt     # Python dependencies
+│   └── uploads/             # Uploaded exam PDFs stored here
+│
+├── frontend/
+│   ├── src/
+│   │   ├── pages/
+│   │   │   ├── LoginPage.jsx
+│   │   │   ├── DashboardPage.jsx
+│   │   │   ├── UploadPage.jsx
+│   │   │   ├── ReviewPage.jsx
+│   │   │   └── ExamDetailPage.jsx
+│   │   ├── App.jsx
+│   │   └── main.jsx
+│   ├── package.json
+│   └── vite.config.js
+│
+├── .env                     # API keys (never commit this)
+└── README.md
 ```
 
 ---
 
-## Step 1 — Backend Setup
+## 🛠 Installation & Setup
+
+### Prerequisites
+- Python 3.10+
+- Node.js 18+
+- A free [Groq API Key](https://console.groq.com)
+
+---
+
+### Step 1 — Clone the Repository
 
 ```bash
-cd gradeops/backend
+git clone https://github.com/yourusername/gradeops.git
+cd gradeops
+```
 
-# Create a virtual environment
+---
+
+### Step 2 — Backend Setup
+
+```bash
+cd backend
+
+# Create and activate virtual environment
 python -m venv venv
-
-# Activate it
-# On Windows:
-venv\Scripts\activate
-# On Mac/Linux:
-source venv/bin/activate
+venv\Scripts\activate        # Windows
+# source venv/bin/activate   # Mac/Linux
 
 # Install dependencies
 pip install -r requirements.txt
-
-# Run the server
-uvicorn main:app --reload --port 8000
+pip install groq python-dotenv pymupdf sentence-transformers
 ```
-
-Backend will run at: http://localhost:8000
-API docs (auto-generated): http://localhost:8000/docs
 
 ---
 
-## Step 2 — Frontend Setup
+### Step 3 — Configure Environment Variables
+
+Create a `.env` file inside the `backend/` folder:
+
+```env
+GROQ_API_KEY=your_groq_api_key_here
+```
+
+Get your free Groq API key at [console.groq.com](https://console.groq.com).
+
+---
+
+### Step 4 — Start the Backend
 
 ```bash
-cd gradeops/frontend
+# Make sure you're inside the backend/ folder
+uvicorn main:app --reload
+```
 
-# Install dependencies
+Backend runs at: `http://127.0.0.1:8000`
+
+---
+
+### Step 5 — Frontend Setup
+
+Open a new terminal:
+
+```bash
+cd frontend
 npm install
-
-# Start dev server
 npm run dev
 ```
 
-Frontend will run at: http://localhost:5173
+Frontend runs at: `http://localhost:5173`
 
 ---
 
-## Step 3 — Test It
+### Step 6 — Login and Test
 
-Open http://localhost:5173
+Open `http://localhost:5173` in your browser.
 
-**Demo login credentials:**
-- Professor: `prof@iitg.ac.in` / `password123`
-- TA: `ta@iitg.ac.in` / `password123`
-
-**Workflow:**
-1. Login as Professor → Upload Exam → attach PDF(s) + fill rubric → Submit
-2. AI grades automatically (mock for now — see below to plug in real AI)
-3. Login as TA → Dashboard → Click exam → Review each submission
-4. Use keyboard shortcuts: `A` = Approve, `O` = Override, `D/→` = Next, `S/←` = Prev
+| Role | Email | Password |
+|---|---|---|
+| Instructor | `prof@iitg.ac.in` | `password123` |
+| Teaching Assistant | `ta@iitg.ac.in` | `password123` |
 
 ---
 
-## Step 4 — Plug In Your ML Pipeline
+## 🔌 API Endpoints
 
-In `backend/main.py`, find the `mock_ai_grade()` function and replace it:
-
-```python
-def mock_ai_grade(rubric: list, student_id: str):
-    # REPLACE THIS with your actual ML pipeline call
-    # Your pipeline should:
-    # 1. Take the rubric and the PDF path
-    # 2. Run OCR (Nougat/Qwen-VL) to extract handwritten text
-    # 3. Run LLM (via LangChain/LangGraph) to grade each question
-    # 4. Return the same dict format shown below
-
-    # Expected return format:
-    return {
-        "grades": [
-            {
-                "question_number": 1,
-                "max_marks": 10.0,
-                "awarded_marks": 7.5,
-                "justification": "Correct method, minor arithmetic error.",
-                "plagiarism_flag": False
-            }
-            # ... one entry per rubric item
-        ],
-        "total_score": 7.5,
-        "max_score": 10.0,
-        "percentage": 75.0
-    }
-```
+| Method | Endpoint | Role | Description |
+|---|---|---|---|
+| `POST` | `/auth/login` | All | Login and get JWT token |
+| `GET` | `/auth/me` | All | Get current user info |
+| `POST` | `/exams/upload` | Instructor | Upload exam PDFs + rubric |
+| `GET` | `/exams` | All | List all exams |
+| `GET` | `/grades/exam/{id}` | All | Get all grades for an exam |
+| `PATCH` | `/grades/{id}` | TA/Instructor | Approve or override a grade |
+| `GET` | `/grades/exam/{id}/stats` | All | Get exam statistics |
 
 ---
 
-## Step 5 — Add PDF Viewer (Optional but recommended)
+## 🤖 AI Models Used
 
-In `ReviewPage.jsx`, find the PDF viewer section and replace the placeholder with:
-
-```jsx
-// Install: npm install react-pdf
-import { Document, Page } from 'react-pdf'
-
-<Document file={`${API}/files/${grade.file_path}`}>
-  <Page pageNumber={1} />
-</Document>
-```
-
-And add a static files route in `main.py`:
-```python
-app.mount("/files", StaticFiles(directory="uploads"), name="uploads")
-```
+| Task | Model | Provider |
+|---|---|---|
+| Handwriting OCR | `meta-llama/llama-4-scout-17b-16e-instruct` | Groq |
+| Answer Grading | `llama-3.3-70b-versatile` | Groq |
+| Plagiarism Detection | `all-MiniLM-L6-v2` | HuggingFace (local) |
 
 ---
 
-## Database (Production)
+## ⚠️ Known Limitations
 
-The current setup uses in-memory Python dicts (data resets on server restart).
-To persist data, replace with PostgreSQL:
-
-```bash
-pip install sqlalchemy psycopg2-binary alembic
-```
-
-Create a `database.py` with SQLAlchemy models — or ask your mentor for the schema.
+- In-memory database resets when the server restarts (no persistent storage yet)
+- OCR accuracy depends on handwriting legibility
+- Groq free tier has rate limits — avoid uploading 20+ papers at once
+- Plagiarism detection works best for text-heavy answers, not diagrams/equations
 
 ---
 
-## API Endpoints Summary
+## 🔮 Future Improvements
 
-| Method | URL | Auth | Description |
-|--------|-----|------|-------------|
-| POST | /auth/login | None | Login → get JWT token |
-| GET | /auth/me | Any | Get current user |
-| POST | /exams/upload | Instructor | Upload PDFs + rubric |
-| GET | /exams | Any | List all exams |
-| GET | /exams/{id} | Any | Get one exam |
-| GET | /grades/exam/{id} | Any | All grades for an exam |
-| PATCH | /grades/{id} | TA/Instructor | Approve or override grade |
-| GET | /grades/exam/{id}/stats | Any | Stats for an exam |
+- PostgreSQL integration for persistent storage
+- Async processing with background task queues
+- Support for multi-page PDFs (currently processes page 1 only)
+- Export grades to CSV/Excel
+- Email notifications to students
+- Fine-tuned grading model for domain-specific subjects
+
+---
+
+## 👥 Team
+
+Built as part of a college project submission.
+
+| Role | Contribution |
+|---|---|
+| AI/ML Engineer | OCR pipeline, LLM grading agent, plagiarism detection |
+| Web Developer | React frontend, FastAPI backend, authentication |
+
+---
+
+## 📄 License
+
+This project is licensed under the MIT License.
+
+---
+
+*"Grading shouldn't take longer than learning."*
+**— The GradeOps Team**
